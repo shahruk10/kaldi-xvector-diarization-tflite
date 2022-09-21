@@ -1,0 +1,1 @@
+../../fbank_mfcc/16000_001/mfcc.ark.txt
