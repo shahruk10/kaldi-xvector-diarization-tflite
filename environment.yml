@@ -5,10 +5,10 @@ dependencies:
   - python=3.7.11
   - pip=21.2.2
   - pip:
-    - tensorflow==2.8.0
-    - pyyaml==6.0
-    - tqdm==4.62.3
-    - pytest==6.2.5
-    - pytest-cov==3.0.0
+    - tensorflow>=2.8.0
+    - pyyaml>=6.0
+    - tqdm>=4.62.3
+    - pytest>=6.2.5
+    - pytest-cov>=3.0.0
     - pylint
-    - librosa==0.8.1
+    - librosa>=0.8.1
