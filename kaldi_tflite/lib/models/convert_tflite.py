@@ -28,7 +28,7 @@ def SavedModel2TFLite(
     savedModelPath: str,
     outPath: str,
     optimize: bool = False,
-    target_dtypes: Iterable[tf.dtypes.DType] = [tf.float16, tf.float32],
+    target_dtypes: Iterable[tf.dtypes.DType] = [tf.float32],
     enable_select_tf_ops: bool = False,
     enable_resource_variables: bool = False,
 ):
@@ -51,7 +51,7 @@ def SavedModel2TFLite(
         Applicable if optimize = True. Will optimize assuming that
         the target devices will run on these data types. Optimization
         might be driven by the smallest type in this set. By default,
-        set to [tf.float16, tf.float32].
+        set to [tf.float32].
     enable_select_tf_ops: bool, optional
         If true, will allow ops from the core tensorflow library which will
         require linking to the flex ops library when building applications
