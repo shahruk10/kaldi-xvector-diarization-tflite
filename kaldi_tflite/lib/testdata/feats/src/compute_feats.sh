@@ -133,101 +133,141 @@ function compute_vad() {
         ark,t:"${out_dir}/vad.ark.txt"
 }
 
+
+function write_delta_conf() {
+    out_dir=$1
+    order=$2
+    window=$3
+
+    cat <<EOF > ${out_dir}/delta.conf
+        --delta-order=${order}
+        --delta-window=${window}
+EOF
+}
+
+function compute_deltas() {
+    out_dir=$1
+    mfcc_dir=$2
+
+    ln -sf "$(realpath ${mfcc_dir}/mfcc.ark.txt --relative-to=${out_dir})" "${out_dir}/mfcc.ark.txt"
+
+    # Computing Deltas.
+    "${kaldi}/src/featbin/add-deltas" \
+        --config="${out_dir}/delta.conf" \
+        ark,t:"${out_dir}/mfcc.ark.txt" \
+        ark,t:"${out_dir}/deltas.ark.txt"
+}
+
 use_energy=true
 n=0
 
-for sample_freq in 16000; do
-    for num_mels in 23 30; do
-        for snip_edges in true false; do
-            for frame_length in 25 32; do
-                for frame_shift in 10 16; do
-                    for raw_energy in true false; do
-                        for num_ceps in 23 30; do
-                            if [[ ${num_ceps} -gt ${num_mels} ]]; then
-                                continue
-                            fi
+# for sample_freq in 16000; do
+#     for num_mels in 23 30; do
+#         for snip_edges in true false; do
+#             for frame_length in 25 32; do
+#                 for frame_shift in 10 16; do
+#                     for raw_energy in true false; do
+#                         for num_ceps in 23 30; do
+#                             if [[ ${num_ceps} -gt ${num_mels} ]]; then
+#                                 continue
+#                             fi
 
-                            n=$((n+1))
-                            audio_path="${TOP}/kaldi_tflite/lib/testdata/librispeech_2_trimmed.wav"
-                            input_scp="seg1 ${audio_path}"
+#                             n=$((n+1))
+#                             audio_path="${TOP}/kaldi_tflite/lib/testdata/librispeech_2_trimmed.wav"
+#                             input_scp="seg1 ${audio_path}"
 
-                            # Output directory where reference input and outputs will be written to.
-                            id=$(printf "%03d" ${n})
-                            out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/fbank_mfcc/${sample_freq}_${id}"
-                            mkdir -p "${out_dir}"
+#                             # Output directory where reference input and outputs will be written to.
+#                             id=$(printf "%03d" ${n})
+#                             out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/fbank_mfcc/${sample_freq}_${id}"
+#                             mkdir -p "${out_dir}"
 
-                            write_feat_conf "${out_dir}" ${sample_freq} ${num_mels} ${snip_edges} ${frame_length} ${frame_shift} ${raw_energy} ${num_ceps} ${use_energy}
-                            generate_feats "${out_dir}" "${audio_path}" "${input_scp}"
-                        done
-                    done
-                done
-            done
-        done
-    done
-done
+#                             write_feat_conf "${out_dir}" ${sample_freq} ${num_mels} ${snip_edges} ${frame_length} ${frame_shift} ${raw_energy} ${num_ceps} ${use_energy}
+#                             generate_feats "${out_dir}" "${audio_path}" "${input_scp}"
+#                         done
+#                     done
+#                 done
+#             done
+#         done
+#     done
+# done
 
-# A couple more unique combinations.
-use_energy=false
-sample_freq=16000
-snip_edges=true
-frame_length=25
-frame_shift=10
+# # A couple more unique combinations.
+# use_energy=false
+# sample_freq=16000
+# snip_edges=true
+# frame_length=25
+# frame_shift=10
 
-for raw_energy in true false; do
-    for num_mels in 23 30; do
-        for num_ceps in 23 30; do
-            if [[ ${num_ceps} -gt ${num_mels} ]]; then
-                continue
-            fi
-            n=$((n+1))
-            audio_path="${TOP}/kaldi_tflite/lib/testdata/librispeech_2_trimmed.wav"
-            input_scp="seg1 ${audio_path}"
+# for raw_energy in true false; do
+#     for num_mels in 23 30; do
+#         for num_ceps in 23 30; do
+#             if [[ ${num_ceps} -gt ${num_mels} ]]; then
+#                 continue
+#             fi
+#             n=$((n+1))
+#             audio_path="${TOP}/kaldi_tflite/lib/testdata/librispeech_2_trimmed.wav"
+#             input_scp="seg1 ${audio_path}"
 
-            # Output directory where reference input and outputs will be written to.
-            id=$(printf "%03d" ${n})
-            out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/fbank_mfcc/${sample_freq}_${id}"
-            mkdir -p "${out_dir}"
+#             # Output directory where reference input and outputs will be written to.
+#             id=$(printf "%03d" ${n})
+#             out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/fbank_mfcc/${sample_freq}_${id}"
+#             mkdir -p "${out_dir}"
 
-            write_feat_conf "${out_dir}" ${sample_freq} ${num_mels} ${snip_edges} ${frame_length} ${frame_shift} ${raw_energy} ${num_ceps} ${use_energy}
-            generate_feats "${out_dir}" "${audio_path}" "${input_scp}"
-        done
-    done
-done
+#             write_feat_conf "${out_dir}" ${sample_freq} ${num_mels} ${snip_edges} ${frame_length} ${frame_shift} ${raw_energy} ${num_ceps} ${use_energy}
+#             generate_feats "${out_dir}" "${audio_path}" "${input_scp}"
+#         done
+#     done
+# done
 
-# Applying CMVN with various conifgs on a single set of MFCCs.
+# # Applying CMVN with various conifgs on a single set of MFCCs.
+# mfcc_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/fbank_mfcc/16000_001"
+# n=0
+# for center in true; do
+#     for min_window in 100; do
+#         for window in 199 200 201 600; do
+#             for norm_vars in false true; do
+#                 n=$((n+1))
+#                 id=$(printf "%03d" ${n})
+#                 out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/cmvn/16000_001_${id}"
+#                 mkdir -p "${out_dir}"
+
+#                 write_cmvn_conf "${out_dir}" ${window} ${norm_vars} ${center} ${min_window}
+#                 apply_cmvn "${out_dir}" "${mfcc_dir}"
+#             done
+#         done
+#     done
+# done
+
+# # Computing VAD with various conifgs on a single set of MFCCs.
+# mfcc_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/fbank_mfcc/16000_001"
+# n=0
+# for energy_threshold in 5.0 10.0; do
+#     for mean_scale in 0.0 0.5 1.0; do
+#         for frames_context in 0 1 2; do
+#             for proportion_threshold in 0.1 0.6 0.9; do
+#                 n=$((n+1))
+#                 id=$(printf "%03d" ${n})
+#                 out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/vad/16000_001_${id}"
+#                 mkdir -p "${out_dir}"
+
+#                 write_vad_conf "${out_dir}" ${energy_threshold} ${mean_scale} ${frames_context} ${proportion_threshold}
+#                 compute_vad "${out_dir}" "${mfcc_dir}"
+#             done
+#         done
+#     done
+# done
+
+# Computing Deltas with various conifgs on a single set of MFCCs.
 mfcc_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/fbank_mfcc/16000_001"
 n=0
-for center in true; do
-    for min_window in 100; do
-        for window in 199 200 201 600; do
-            for norm_vars in false true; do
-                n=$((n+1))
-                id=$(printf "%03d" ${n})
-                out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/cmvn/16000_001_${id}"
-                mkdir -p "${out_dir}"
+for order in 1 2 3; do
+    for window in 1 3 8; do
+        n=$((n+1))
+        id=$(printf "%03d" ${n})
+        out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/deltas/16000_001_${id}"
+        mkdir -p "${out_dir}"
 
-                write_cmvn_conf "${out_dir}" ${window} ${norm_vars} ${center} ${min_window}
-                apply_cmvn "${out_dir}" "${mfcc_dir}"
-            done
-        done
-    done
-done
-
-# Computing VAD with various conifgs on a single set of MFCCs.
-mfcc_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/fbank_mfcc/16000_001"
-n=0
-for energy_threshold in 5.0 10.0; do
-    for mean_scale in 0.0 0.5 1.0; do
-        for frames_context in 0 1 2; do
-            for proportion_threshold in 0.1 0.6 0.9; do
-                n=$((n+1))
-                id=$(printf "%03d" ${n})
-                out_dir="${TOP}/kaldi_tflite/lib/testdata/feats/src/vad/16000_001_${id}"
-                mkdir -p "${out_dir}"
-
-                write_vad_conf "${out_dir}" ${energy_threshold} ${mean_scale} ${frames_context} ${proportion_threshold}
-                compute_vad "${out_dir}" "${mfcc_dir}"
-            done
-        done
+        write_delta_conf "${out_dir}" ${order} ${window}
+        compute_deltas "${out_dir}" "${mfcc_dir}"
     done
 done

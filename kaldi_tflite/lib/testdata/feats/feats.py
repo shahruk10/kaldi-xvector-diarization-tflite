@@ -210,3 +210,37 @@ class RefVAD(KaldiTestDataReader):
                     raise ValueError(f"unrecognized config '{line}' in test conf {cfgFile}")
 
         return cfg
+
+
+class RefDelta(KaldiTestDataReader):
+    basePath = os.path.dirname(__file__)
+
+    @classmethod
+    def getInputs(cls, testName):
+        inputFile = os.path.join(cls.basePath, "src", "deltas", testName, "mfcc.ark.txt")
+        return np.stack(list(cls.loadKaldiArk(inputFile).values()), axis=0)
+
+
+    @classmethod
+    def getOutputs(cls, testName):
+        inputFile = os.path.join(cls.basePath, "src", "deltas", testName, "deltas.ark.txt")
+        return np.stack(list(cls.loadKaldiArk(inputFile).values()), axis=0)
+
+    @classmethod
+    def getConfig(cls, testName):
+        cfgFile = os.path.join(cls.basePath, "src", "deltas", testName, "delta.conf")
+
+        cfg = { "delta": {} }
+        with open(cfgFile, 'r') as f:
+            for line in f:
+                line = line.strip()
+                key, val = line.split("=")
+
+                if key == "--delta-order":
+                    cfg["delta"]["order"] = int(val)
+                elif key == "--delta-window":
+                    cfg["delta"]["window"] = int(val)
+                else:
+                    raise ValueError(f"unrecognized config '{line}' in test conf {cfgFile}")
+
+        return cfg

@@ -25,8 +25,7 @@ from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Sequential
 
 from kaldi_tflite.lib.models import SavedModel2TFLite
-from kaldi_tflite.lib.layers import Framing, MFCC, Delta
-from kaldi_tflite.lib.kaldi_numpy import PadWaveform
+from kaldi_tflite.lib.layers import Delta
 from kaldi_tflite.lib.testdata import RefDelta
 
 tolerance = 5e-7

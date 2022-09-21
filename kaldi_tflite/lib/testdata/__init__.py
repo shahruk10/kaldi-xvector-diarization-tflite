@@ -31,6 +31,6 @@ from .ivector_extractor.ivector_extractor import RefIvectorExtractor
 
 from .stats.stats_pooling import RefStatsPooling
 
-from .feats.feats import RefMFCC, RefFbank, RefCMVN, RefVAD
+from .feats.feats import RefMFCC, RefFbank, RefCMVN, RefVAD, RefDelta
 
 from .models.xvectors_e2e import RefXVectorsE2E
