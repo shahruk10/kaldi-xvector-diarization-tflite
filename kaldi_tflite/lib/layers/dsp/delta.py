@@ -150,15 +150,7 @@ class Delta(Layer):
         numFrames = inputShape[self.frameAxis]
         featDim = inputShape[self.featAxis]
 
-        # Tensor array to store estimated ivectors.
-        deltas = tf.TensorArray(
-            dtype=inputs.dtype,
-            size=self.order + 1,
-            dynamic_size=False,
-            clear_after_read=False,
-        )
-
-        deltas = deltas.write(0, inputs)
+        deltas = [tf.expand_dims(inputs, axis=2)]
 
         for order in range(1, self.order + 1):
             kernel = self.kernels[order]
@@ -178,19 +170,12 @@ class Delta(Layer):
             # This is removed after the conv.
             x = tf.expand_dims(x, axis=-1)
 
-            deltas = deltas.write(order, tf.cast(tf.squeeze(tf.nn.conv2d(
+            deltas.append(tf.expand_dims(tf.cast(tf.squeeze(tf.nn.conv2d(
                 tf.cast(x, kernel.dtype), kernel, strides=(1, 1),
                 padding="VALID", data_format="NHWC",
-            ), axis=-1), x.dtype))
+            ), axis=-1), x.dtype), axis=2))
 
-        # TensorArray's stack() method returns a tensor containing the elements
-        # stacked along a new axis. We move this axis to the end and reshape so
-        # that each frame can contain the original features, along with their
-        # deltas.
-        inputsWithDeltas = tf.transpose(
-            deltas.stack(), [1, 2, 0, 3],
-        )
-
+        inputsWithDeltas = tf.concat(deltas, 2)
         outputShape = [batchSize, numFrames, featDim * (self.order + 1)]
         inputsWithDeltas = tf.reshape(inputsWithDeltas, outputShape)
 
